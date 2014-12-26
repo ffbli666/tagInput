@@ -6,8 +6,8 @@ tagApp.controller('TagListCtrl', function ($scope) {
         {name: 'tag2'},
         {name: 'tag3'}
     ];
-    $scope.input = function(e) {
-        if ((e.keyCode == 13) && $scope.tagText) {
+    $scope.add = function(e) {
+        if ($scope.tagText){
             var tag = angular.lowercase($scope.tagText)
             if ($scope.tags.map(function(e) { return e.name; }).indexOf(tag) >= 0) {
                 alert("duplicated");
@@ -17,6 +17,13 @@ tagApp.controller('TagListCtrl', function ($scope) {
             $scope.tagText = '';
         }
     }
+    
+    $scope.input = function(e) {
+        if ((e.keyCode == 13)) {
+            $scope.add();
+        }
+    }
+
     $scope.removeTag = function(tagToRemove) {
         console.log(tagToRemove);
         var index = $scope.tags.indexOf(tagToRemove);
