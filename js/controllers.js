@@ -25,8 +25,10 @@ tagApp.controller('TagListCtrl', function ($scope) {
     };
 
     $scope.getTags = function() {
-        console.log($scope.tags.map(function(e) { return e.name; }));
-        return $scope.tags.map(function(e) { return e.name; });
+        var tags = $scope.tags.map(function(e) { return e.name; });
+        console.log(tags);       
+        $('.result').append('<li>' + tags +'</li>');
+        return tags;
     };
 
     $scope.getTagsSerialize = function() {
