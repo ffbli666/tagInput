@@ -6,7 +6,7 @@ tagApp.controller('TagListCtrl', function ($scope) {
         {name: 'tag2'},
         {name: 'tag3'}
     ];
-    $scope.add = function(e) {
+    $scope.addTag = function(e) {
         if ($scope.tagText){
             var tag = angular.lowercase($scope.tagText)
             if ($scope.tags.map(function(e) { return e.name; }).indexOf(tag) >= 0) {
@@ -15,12 +15,6 @@ tagApp.controller('TagListCtrl', function ($scope) {
             }
             $scope.tags.push({name: tag});
             $scope.tagText = '';
-        }
-    }
-    
-    $scope.input = function(e) {
-        if ((e.keyCode == 13)) {
-            $scope.add();
         }
     }
 
@@ -38,4 +32,10 @@ tagApp.controller('TagListCtrl', function ($scope) {
     $scope.getTagsSerialize = function() {
         return $scope.tags.map(function(e) { return e.name; }).join(',');
     };
+
+    $scope.input = function(e) {
+        if ((e.keyCode == 13)) {
+            $scope.add();
+        }
+    }
 });
