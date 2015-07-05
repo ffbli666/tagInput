@@ -35,7 +35,7 @@ tagApp.controller('TagListCtrl', function ($scope) {
 
     $scope.input = function(e) {
         if ((e.keyCode == 13)) {
-            $scope.add();
+            $scope.addTag();
         }
     }
 });
