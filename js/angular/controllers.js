@@ -19,14 +19,12 @@ tagApp.controller('TagListCtrl', function ($scope) {
     }
 
     $scope.removeTag = function(tagToRemove) {
-        console.log(tagToRemove);
         var index = $scope.tags.indexOf(tagToRemove);
         $scope.tags.splice(index, 1);
     };
 
     $scope.getTags = function() {
         var tags = $scope.tags.map(function(e) { return e.name; });
-        console.log(tags);       
         $('.result').append('<li>' + tags +'</li>');
         return tags;
     };

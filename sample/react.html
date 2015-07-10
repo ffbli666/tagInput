@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv='content-type' content='text/html; charset=utf-8'>
+    <title>Use React Implement Tag Input</title>
+    <link href='../css/bootstrap.min.css' rel='stylesheet'>
+    <link href='../css/common.css' rel='stylesheet'>
+    <style>
+    </style>
+</head>
+<body>
+<div class='container-fluid'>
+<div class='row'>
+    <div class='col-xs-6'>
+        <h1>Demo</h1>
+        <div id='example' class='example'></div>
+        <button class="btn btn-primary" onClick='getTags()'>Submit</button>
+    </div>
+    <div class='col-xs-6'>
+        <h1>Result</h1>
+        <ul class='result'>
+        </ul>
+    </div>
+</div>
+</div>
+<script src="../js/jquery-1.11.0.min.js"></script>
+<script src="../js/react/react.min.js"></script>
+<script src="../js/react/tagInput.js"></script>
+<script>
+var tagInput = React.render(React.createElement(TagInput, {tags: [{name: 'tag1'},{name: 'tag2'},{name: 'tag3'}]}), document.getElementById('example'));
+function getTags() {
+    var tags = tagInput.getTags();
+    $('.result').append('<li>' + tags +'</li>');
+}
+</script>
+</body>
+</html>
+
+
