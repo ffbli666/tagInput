@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv='content-type' content='text/html; charset=utf-8'>
+    <title>Use Jquery Implement Tag Input</title>
+    <link href='../css/bootstrap.min.css' rel='stylesheet'>
+    <link href='../css/common.css' rel='stylesheet'>
+    <style>
+    </style>
+</head>
+<body>
+<div class='container-fluid'>
+    <div class='row'>
+        <div class='col-xs-6'>
+            <h1>Demo</h1>
+            <div id="tag-list" name="tag-list" class="tag-list">
+                <ul class="tag-data">
+                    <li>
+                        <div class="tag">
+                            <span class="name"></span>
+                            <span class="remove">x</span>
+                        </div>
+                    </li>
+                </ul>
+                <div>
+                    <input type=text class="tag-input" placeholder="+">
+                    <button type="button" class="btn btn-primary tag-add">Add Tags</button>
+                    <button type="button" class="btn btn-primary tag-get">Get Tags</button>
+                </div>
+            </div>
+        </div>
+        <div class='col-xs-6'>
+            <h1>Result</h1>
+            <ul class='result'>
+            </ul>
+        </div>
+    </div>
+</div>
+<script src="../js/jquery-1.11.0.min.js"></script>
+<script src="../js/jquery/tagInput.js"></script>
+<script>
+
+$("#tag-list").TagInput([
+                            {name: 'tag1'},
+                            {name: 'tag2'},
+                            {name: 'tag3'}
+                        ]);
+
+</script>
+</body>
+</html>

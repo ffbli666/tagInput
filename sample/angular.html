@@ -10,32 +10,32 @@
 </head>
 <body ng-app='tagApp'>
 <div class='container-fluid'>
-<div class='row'>
-    <div class='col-xs-6'>
-        <h1>Demo</h1>
-        <div id="tag-list" name="tag-list" class="tag-list" ng-controller="TagListCtrl">
-            <ul>
-                <li ng-repeat="tag in tags">
-                    <div class="tag">
-                        <span class="name">{{tag.name}}</span>
-                        <span class="remove" ng-click="removeTag(tag)">x</span>
-                    </div>
-                </li>
-            </ul>
-            <div>
-                <input type=text class="tag-input" placeholder="+" ng-keydown="input($event)" ng-model="tagText">
-                <button type="button" class="btn btn-primary" ng-click="addTag()">Add Tags</button>
-                <button type="button" class="btn btn-primary" ng-click="getTags()">Get Tags</button>
+    <div class='row'>
+        <div class='col-xs-6'>
+            <h1>Demo</h1>
+            <div id="tag-list" name="tag-list" class="tag-list" ng-controller="TagListCtrl">
+                <ul>
+                    <li ng-repeat="tag in tags">
+                        <div class="tag">
+                            <span class="name">{{tag.name}}</span>
+                            <span class="remove" ng-click="removeTag(tag)">x</span>
+                        </div>
+                    </li>
+                </ul>
+                <div>
+                    <input type=text class="tag-input" placeholder="+" ng-keydown="input($event)" ng-model="tagText">
+                    <button type="button" class="btn btn-primary" ng-click="addTag()">Add Tags</button>
+                    <button type="button" class="btn btn-primary" ng-click="getTags()">Get Tags</button>
+                </div>
+                <button type="button" class="btn btn-primary" onclick="getTags()">Outside Get Tags</button>
             </div>
-            <button type="button" class="btn btn-primary" onclick="getTags()">Outside Get Tags</button>
+        </div>
+        <div class='col-xs-6'>
+            <h1>Result</h1>
+            <ul class='result'>
+            </ul>
         </div>
     </div>
-    <div class='col-xs-6'>
-        <h1>Result</h1>
-        <ul class='result'>
-        </ul>
-    </div>
-</div>
 </div>
 <script src="../js/jquery-1.11.0.min.js"></script>
 <script src="../js/angular/angular.min.js"></script>

@@ -20,6 +20,7 @@ tagApp.controller('TagListCtrl', function ($scope) {
 
     $scope.removeTag = function(tagToRemove) {
         var index = $scope.tags.indexOf(tagToRemove);
+        if (index < 0) return;
         $scope.tags.splice(index, 1);
     };
 
@@ -34,7 +35,7 @@ tagApp.controller('TagListCtrl', function ($scope) {
     };
 
     $scope.input = function(e) {
-        if ((e.keyCode == 13)) {
+        if (e.keyCode == 13) {
             $scope.addTag();
         }
     }
