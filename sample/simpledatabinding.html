@@ -48,7 +48,7 @@
             var self = this;
             var $scope = {$alias:{}};
 
-            var getFunction = function (string) {
+            var getFunctionExpression = function (string) {
                 var regex = /^([\w\d]+)[ ]*\(([\w\d, ]*)\)$/;
                 var match = string.trim().match(regex);
                 if (match === null) return false;
@@ -74,7 +74,7 @@
             var registerEvent = function (ent) {
                 var items = self.find('[ng-' + ent + ']');
                 items.each( function( index, element ) {
-                    var func = getFunction($(this).attr('ng-' + ent).trim());
+                    var func = getFunctionExpression($(this).attr('ng-' + ent).trim());
                     console.log(func.name);
                     if (!$scope[func.name] || typeof $scope[func.name] !== 'function') return;
                     $(element).on(ent, function(e){
@@ -135,11 +135,6 @@
                 //console.log(typeof $scope[re.parent]);
                 $scope.$alias[re.child] = $scope[re.parent];
 
-                Object.observe($scope[re.parent], function(changes) {
-
-                    $scope[re.parent] = $scope[re.parent];
-                });
-
                 $scope.watch(re.parent, function(prop, oldval, newval) {
                     console.log(newval);
                     console.log('watch:' + re.parent);
@@ -163,7 +158,7 @@
                         var ent = 'click';
                         var items = child.find('[ng-' + ent + ']');
                         items.each( function( c_index, c_element ) {
-                            var func = getFunction($(this).attr('ng-' + ent));
+                            var func = getFunctionExpression($(this).attr('ng-' + ent));
                             if (!$scope[func.name] || typeof $scope[func.name] !== 'function') return;
                             var attrs = [];
                             if (func.attribute.length > 0) {
@@ -187,6 +182,13 @@
                         parent.append(child);
                     });
                     return newval;
+                });
+
+                // todo
+                // Observe only chrome have
+                // need implement in other browser
+                Object.observe($scope[re.parent], function(changes) {
+                    $scope[re.parent] = $scope[re.parent];
                 });
                 $scope[re.parent] = $scope[re.parent];
             });

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>QUnit Example</title>
+    <link rel="stylesheet" href="http://code.jquery.com/qunit/qunit-1.19.0.css">
+</head>
+<body>
+    <div id="qunit"></div>
+    <div id="qunit-fixture"></div>
+    <script src="http://code.jquery.com/qunit/qunit-1.19.0.js"></script>
+    <script src="js/lng/lng.js"></script>
+    <script>
+        var _expression = new Expression();
+        QUnit.test( "Expression.func test", function( assert ) {
+            assert.throws(function(){
+                try{
+                    _expression.func("");
+                } catch (e) {
+                    throw e;
+                }
+            }, "empty is not function!" );
+            assert.throws(function(){
+                try{
+                    _expression.func("add");
+                } catch (e) {
+                    throw e;
+                }
+            }, "add is not function!!" );
+            assert.propEqual( _expression.func("add ()"), {name:"add",attribute:""}, 'add() return: {name="add", attribute:""}' );
+            assert.propEqual( _expression.func("add (value1)"), {name:"add",attribute:"value1"},'add (value1) return: {name="add", attribute:"value1"}' );
+            assert.propEqual( _expression.func("add_value (value_1, value_2)"), {name:"add_value",attribute:"value_1, value_2"}, 'add_value (value_1, value_2) return: {name="add_value", attribute:"value_1, value_2"}' );
+        });
+
+
+        QUnit.test( "Expression.repeat test", function( assert ) {
+            assert.throws(function(){
+                try{
+                    _expression.repeat("");
+                } catch (e) {
+                    throw e;
+                }
+            }, "empty is not repeate expression!" );
+            assert.throws(function(){
+                try{
+                    _expression.repeat("element parent");
+                } catch (e) {
+                    throw e;
+                }
+            }, "element parent is not repeate expression!!" );
+            assert.propEqual( _expression.repeat("element   in array"), {lhs:"element", rhs:"array"}, 'element   in array return: {lhs:"element", rhs:"array"}' );
+        });
+
+        var _lngScope = new LngScope();
+        _lngScope.val1 = "value1";
+        _lngScope.array1 = ['v1','v2','v3'];
+        _lngScope.function1 = function(){return 'function1'};
+        _lngScope.object1 = {f1:function(){return 'object.f1'}, v1:'v1', a1:[1,2,3]};
+        QUnit.test( "_lngScope.getVariable test", function( assert ) {
+            assert.equal(_lngScope.getVariable(""), false, "empty is return false");
+            assert.equal(_lngScope.getVariable("lalala"), false, "lalala is not in variable, so return false");
+            assert.equal(_lngScope.getVariable("val1"), "value1", "val1 is equal value1");
+            assert.propEqual(_lngScope.getVariable("array1"), ['v1','v2','v3'], "array1 is equal ['v1','v2','v3']");
+            assert.equal(_lngScope.getVariable("function1")(), 'function1', "function1 is a funciton return function1");
+            assert.equal(_lngScope.getVariable("object1.v2"), false, "object1.v2 is not in variable, return false");
+            assert.equal(_lngScope.getVariable("object1.v1"), 'v1', "object1.v1 is return v1");
+            assert.propEqual(_lngScope.getVariable("object1.a1"), [1,2,3], "object1.a1 is equal [1,2,3]");
+            assert.equal(_lngScope.getVariable("object1.f1")(), 'object.f1', "object.f1 is a funciton return object.f1");
+        });
+    </script>
+</body>
+</html>
