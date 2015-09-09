@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv='content-type' content='text/html; charset=utf-8'>
+    <title>Use Angular Implement Tag Input</title>
+    <link href='../css/bootstrap.min.css' rel='stylesheet'>
+    <link href='../css/common.css' rel='stylesheet'>
+    <style>
+    </style>
+</head>
+<body>
+<div class='container-fluid'>
+    <div class='row'>
+        <div class='col-xs-6'>
+            <h1>Demo</h1>
+            <div id="tag-list" name="tag-list" class="tag-list">
+                <ul>
+                    <li ng-repeat="tag in tags">
+                        <div class="tag">
+                            <span class="name" ng-bind-html="tag.name"></span>
+                            <span class="remove" ng-click="removeTag(tag,abc,eee)">x</span>
+                        </div>
+                    </li>
+                </ul>
+                <div>
+                    <input type=text class="tag-input" placeholder="+" ng-keydown="input($event)" ng-model="tagText">
+                    <button type="button" class="btn btn-primary" ng-click="addTag()">Add Tags</button>
+                    <button type="button" class="btn btn-primary" ng-click="getTags()">Get Tags</button>
+                    <p ng-bind-html="abc"></p>
+                </div>
+                <button type="button" class="btn btn-primary" onclick="getTags()">Outside Get Tags</button>
+            </div>
+        </div>
+        <div class='col-xs-6'>
+            <h1>Result</h1>
+            <ul class='result'>
+            </ul>
+        </div>
+    </div>
+</div>
+<script src="../js/jquery-1.11.0.min.js"></script>
+<script src="../js/lng/object-watch.js"></script>
+<script>
+
+(function($) {
+    $.fn.extend({
+        lng: function(cb) {
+            var self = this;
+            var $scope = {$alias:{}};
+
+            var getFunction = function (string) {
+                var regex = /^([\w\d]+)[ ]*\(([\w\d, ]*)\)$/;
+                var match = string.trim().match(regex);
+                if (match === null) return false;
+
+                var name = match.splice(1, 1).toString().trim();
+                var attribute = match.splice(1).toString().trim();
+                return {
+                    name: name,
+                    attribute: attribute
+                };
+            }
+            var getRepeatExpression = function (string) {
+                var regex = /^([\w\d]+)[ ]*in[ ]([\w\d]+)$/;
+                var match = string.trim().match(regex);
+                if (match === null) return false;
+                var child = match.splice(1, 1).toString().trim();
+                var parent = match.splice(1, 1).toString().trim();
+                return {
+                    child: child,
+                    parent: parent
+                };
+            }
+            var registerEvent = function (ent) {
+                var items = self.find('[ng-' + ent + ']');
+                items.each( function( index, element ) {
+                    var func = getFunction($(this).attr('ng-' + ent).trim());
+                    console.log(func.name);
+                    if (!$scope[func.name] || typeof $scope[func.name] !== 'function') return;
+                    $(element).on(ent, function(e){
+                        $scope[func.name].call(this, e);
+                    });
+                });
+            }
+
+            var bindHtml = function (root) {
+                var items = root.find('[ng-bind-html]');
+                items.each( function( index, element ) {
+                    var variable = $(this).attr('ng-bind-html').trim();
+                    //if (!$scope[variable] || typeof $scope[variable] !== 'string') return;
+                    $scope.watch(variable, function(prop, oldval, newval){
+                        $(element).html(newval);
+                        return newval;
+                    });
+                    $scope[variable] = $scope[variable];
+                });
+            }
+            var getVariableExpression = function (string) {
+                var variable = string.trim().split('.');
+                var name = variable.splice(0, 1).toString().trim();
+                return {
+                    name: name,
+                    prop: variable
+                };
+            }
+            var getVariable = function(name, index) {
+                if (!name)
+                    return false;
+
+                if ($scope[name]) {
+                    return $scope[name];
+                }
+
+                if ($scope.$alias[name] && $scope.$alias[name][index]) {
+                    return $scope.$alias[name][index];
+                }
+                return false;
+            }
+            var getValue = function(variable, prop) {
+                if (!prop) return variable;
+                var firstProp = prop.splice(0, 1)
+                if (firstProp == "") return variable;
+                if (!variable[firstProp]) return false;
+                return getValue(variable[firstProp], prop);
+            }
+            cb.call(self, $scope);
+            //repeat
+            var items = self.find('[ng-repeat]');
+            items.each( function( index, element ) {
+                var parent = $(this).parent();
+                var value = $(this).attr('ng-repeat');
+                var template = $(this).clone();
+                //$(this).remove();
+                var re = getRepeatExpression(value);
+                //console.log(typeof $scope[re.parent]);
+                $scope.$alias[re.child] = $scope[re.parent];
+
+                Object.observe($scope[re.parent], function(changes) {
+
+                    $scope[re.parent] = $scope[re.parent];
+                });
+
+                $scope.watch(re.parent, function(prop, oldval, newval) {
+                    console.log(newval);
+                    console.log('watch:' + re.parent);
+                    parent.empty();
+                    $.each(newval, function(index, value) {
+                        // console.log(value);
+                        // console.log($scope.$alias[re.child][index]);
+                        var child = template.clone();
+                        var bindHtml = child.find('[ng-bind-html]');
+                        bindHtml.each( function( c_index, c_element ) {
+                            var ve = getVariableExpression($(this).attr('ng-bind-html'));
+                            var variable = getVariable(ve.name, index);
+                            var vv = getValue(variable, ve.prop);
+                            //console.log(vv);
+                            $(c_element).html(vv);
+                            // value.watch(variable, function(prop, oldval, newval){
+                            //     $(element).html(newval);
+                            // });
+                            //value[variable] = value[variable];
+                        });
+                        var ent = 'click';
+                        var items = child.find('[ng-' + ent + ']');
+                        items.each( function( c_index, c_element ) {
+                            var func = getFunction($(this).attr('ng-' + ent));
+                            if (!$scope[func.name] || typeof $scope[func.name] !== 'function') return;
+                            var attrs = [];
+                            if (func.attribute.length > 0) {
+                                funcAttrs = func.attribute.split(',');
+                                for(var i in funcAttrs ) {
+                                    //console.log(funcAttrs[i]);
+                                    var ve = getVariableExpression(funcAttrs[i]);
+                                    var variable = getVariable(ve.name, index);
+                                    var vv = getValue(variable, ve.prop);
+                                    if (vv) {
+                                        attrs.push(vv);
+                                    }
+                                }
+                            }
+
+                            $(c_element).on(ent, function(e){
+                                attrs.unshift(e);
+                                $scope[func.name].apply(this, attrs);
+                            });
+                        });
+                        parent.append(child);
+                    });
+                    return newval;
+                });
+                $scope[re.parent] = $scope[re.parent];
+            });
+            //bind-html
+            //bindHtml(self);
+            //$scope.abc = '123';
+            //click
+            registerEvent('click');
+            return this;
+        }
+    });
+})(jQuery);
+
+$('#tag-list').lng( function($scope){
+    $scope.tags = [
+        {name: 'tag1'},
+        {name: 'tag2'},
+        {name: 'tag3'}
+    ];
+    $scope.abc = "abc string";
+    $scope.addTag = function(e) {
+        console.log('addTag');
+        //if ($scope.tagText){
+            //var tag = angular.lowercase($scope.tagText)
+            var tag = $('.tag-input').val().trim();
+            if (!tag) return ;
+            if ($scope.tags.map(function(e) { return e.name; }).indexOf(tag) >= 0) {
+                alert("duplicated");
+                return;
+            }
+            $scope.tags.push({name: tag});
+            $scope.tagText = '';
+        //}
+    }
+
+    $scope.removeTag = function(e, tagToRemove) {
+        console.log('removeTag');
+        console.log(e);
+        console.log(tagToRemove);
+        var index = $scope.tags.indexOf(tagToRemove);
+        if (index < 0) return;
+        $scope.tags.splice(index, 1);
+    };
+
+    $scope.getTags = function() {
+        console.log('getTag');
+        var tags = $scope.tags.map(function(e) { return e.name; });
+        $('.result').append('<li>' + tags +'</li>');
+        return tags;
+    };
+
+    $scope.getTagsSerialize = function() {
+        return $scope.tags.map(function(e) { return e.name; }).join(',');
+    };
+
+    $scope.input = function(e) {
+        if (e.keyCode == 13) {
+            $scope.addTag();
+        }
+    }
+})
+</script>
+</body>
+</html>
