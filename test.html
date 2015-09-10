@@ -9,46 +9,51 @@
     <div id="qunit"></div>
     <div id="qunit-fixture"></div>
     <script src="http://code.jquery.com/qunit/qunit-1.19.0.js"></script>
+    <script src="js/jquery-1.11.0.min.js"></script>
     <script src="js/lng/lng.js"></script>
     <script>
-        var _expression = new Expression();
         QUnit.test( "Expression.func test", function( assert ) {
             assert.throws(function(){
                 try{
-                    _expression.func("");
+                    Expression.func();
                 } catch (e) {
                     throw e;
                 }
             }, "empty is not function!" );
             assert.throws(function(){
                 try{
-                    _expression.func("add");
+                    Expression.func("add");
                 } catch (e) {
                     throw e;
                 }
             }, "add is not function!!" );
-            assert.propEqual( _expression.func("add ()"), {name:"add",attribute:""}, 'add() return: {name="add", attribute:""}' );
-            assert.propEqual( _expression.func("add (value1)"), {name:"add",attribute:"value1"},'add (value1) return: {name="add", attribute:"value1"}' );
-            assert.propEqual( _expression.func("add_value (value_1, value_2)"), {name:"add_value",attribute:"value_1, value_2"}, 'add_value (value_1, value_2) return: {name="add_value", attribute:"value_1, value_2"}' );
+            assert.propEqual( Expression.func("add ()"), {name:"add",attrs:""}, 'add() return: {name="add", attribute:""}' );
+            assert.propEqual( Expression.func("add (value1)"), {name:"add",attrs:"value1"},'add (value1) return: {name="add", attribute:"value1"}' );
+            assert.propEqual( Expression.func("add_value (value_1, value_2)"), {name:"add_value",attrs:"value_1, value_2"}, 'add_value (value_1, value_2) return: {name="add_value", attribute:"value_1, value_2"}' );
         });
-
-
         QUnit.test( "Expression.repeat test", function( assert ) {
             assert.throws(function(){
                 try{
-                    _expression.repeat("");
+                    Expression.repeat();
                 } catch (e) {
                     throw e;
                 }
             }, "empty is not repeate expression!" );
             assert.throws(function(){
                 try{
-                    _expression.repeat("element parent");
+                    Expression.repeat("element parent");
                 } catch (e) {
                     throw e;
                 }
             }, "element parent is not repeate expression!!" );
-            assert.propEqual( _expression.repeat("element   in array"), {lhs:"element", rhs:"array"}, 'element   in array return: {lhs:"element", rhs:"array"}' );
+            assert.propEqual( Expression.repeat("element   in array"), {lhs:"element", rhs:"array"}, 'element   in array return: {lhs:"element", rhs:"array"}' );
+        });
+
+        QUnit.test( "Expression.isFunction test", function( assert ) {
+            assert.equal( Expression.isFunction(), false, 'empty return false' );
+            assert.equal( Expression.isFunction("abc"), false, 'abc return false' );
+            assert.equal( Expression.isFunction("abc()"), true, 'abc() return true' );
+            assert.equal( Expression.isFunction("abc(a,b,c,d)"), true, 'abc(a,b,c,d) return true' );
         });
 
         var _lngScope = new LngScope();
@@ -56,9 +61,10 @@
         _lngScope.array1 = ['v1','v2','v3'];
         _lngScope.function1 = function(){return 'function1'};
         _lngScope.object1 = {f1:function(){return 'object.f1'}, v1:'v1', a1:[1,2,3]};
+
         QUnit.test( "_lngScope.getVariable test", function( assert ) {
-            assert.equal(_lngScope.getVariable(""), false, "empty is return false");
-            assert.equal(_lngScope.getVariable("lalala"), false, "lalala is not in variable, so return false");
+            assert.equal(_lngScope.getVariable(), false, "empty is return false");
+            assert.equal(_lngScope.getVariable("lalala"), false, "lalala is not a variable return false");
             assert.equal(_lngScope.getVariable("val1"), "value1", "val1 is equal value1");
             assert.propEqual(_lngScope.getVariable("array1"), ['v1','v2','v3'], "array1 is equal ['v1','v2','v3']");
             assert.equal(_lngScope.getVariable("function1")(), 'function1', "function1 is a funciton return function1");
@@ -66,6 +72,31 @@
             assert.equal(_lngScope.getVariable("object1.v1"), 'v1', "object1.v1 is return v1");
             assert.propEqual(_lngScope.getVariable("object1.a1"), [1,2,3], "object1.a1 is equal [1,2,3]");
             assert.equal(_lngScope.getVariable("object1.f1")(), 'object.f1', "object.f1 is a funciton return object.f1");
+        });
+        _lngScope.val_1 = 1;
+        _lngScope.val_2 = 2;
+        _lngScope.math = {add: function(a, b){return a+b;}};
+        QUnit.test( "_lngScope.getFunction test", function( assert ) {
+            assert.equal(_lngScope.getFunction(), false, "empty is return false");
+            assert.throws(function(){
+                try{
+                    _lngScope.getFunction("lalala");
+                } catch (e) {
+                    throw e;
+                }
+            }, "lalala is not a function return false" );
+            assert.equal(_lngScope.getFunction("val1()"), false, "val1 is not a function return false");
+            var find ;
+            find = _lngScope.getFunction("function1()");
+            assert.equal(find.func.apply(_lngScope, find.attrs), "function1", "function1 is return function1");
+            find = _lngScope.getFunction("object1.f1()");
+            assert.equal(find.func.apply(_lngScope, find.attrs), "object.f1", "object.f1 is return object.f1");
+            find = _lngScope.getFunction("math.add(val_1, val_2)");
+            assert.equal(find.func.apply(_lngScope, find.attrs), 3, "math.add(val_1, val_2) is return 3");
+        });
+        _lngScope.setAlias('alias_value', 123);
+        QUnit.test( "_lngScope.setAlias test", function( assert ) {
+            assert.equal(_lngScope.getVariable('alias_value'), 123, "alias_value is 123");
         });
     </script>
 </body>

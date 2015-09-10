@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv='content-type' content='text/html; charset=utf-8'>
+    <title>Use Angular Implement Tag Input</title>
+    <link href='../css/bootstrap.min.css' rel='stylesheet'>
+    <link href='../css/common.css' rel='stylesheet'>
+    <style>
+    </style>
+</head>
+<body>
+<div class='container-fluid'>
+    <div class='row'>
+        <div class='col-xs-6'>
+            <h1>Demo</h1>
+            <div id="tag-list" name="tag-list" class="tag-list">
+                <ul>
+                    <li ng-repeat="tag in tags">
+                        <div class="tag">
+                            <span class="name" ng-bind="tag.name"></span>
+                            <span class="remove" ng-click="removeTag(tag,abc,eee)">x</span>
+                        </div>
+                    </li>
+                </ul>
+                <div>
+                    <input type=text class="tag-input" placeholder="+" ng-keydown="input($event)" ng-model="tagText">
+                    <button type="button" class="btn btn-primary" ng-click="addTag()">Add Tags</button>
+                    <button type="button" class="btn btn-primary" ng-click="getTags()">Get Tags</button>
+                    <p ng-bind="getTest(a)"></p>
+                    <p ng-bind="abc"></p>
+                </div>
+
+                <ul>
+                    <li ng-repeat="tag in tags">
+                        <div class="tag">
+                            <span class="name" ng-bind="tag.name"></span>
+                            <span class="remove" ng-click="removeTag(tag,abc,eee)">x</span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class='col-xs-6'>
+            <h1>Result</h1>
+            <ul class='result'>
+            </ul>
+        </div>
+    </div>
+</div>
+<script src="../js/jquery-1.11.0.min.js"></script>
+<script src="../js/lng/object-watch.js"></script>
+<script src="../js/lng/lng.js"></script>
+<script>
+$('#tag-list').lng( function($scope){
+    $scope.tags = [
+        {name: 'tag1'},
+        {name: 'tag2'},
+        {name: 'tag3'}
+    ];
+    $scope.abc = "abc string";
+    $scope.a = 1;
+    $scope.getTest = function(b) {
+        console.log('getTest');
+        console.log(b);
+        return b=b+1;
+    };
+
+    $scope.addTag = function(e) {
+        console.log('addTag');
+        //if ($scope.tagText){
+            //var tag = angular.lowercase($scope.tagText)
+            var tag = $('.tag-input').val().trim();
+            if (!tag) return ;
+            if ($scope.tags.map(function(e) { return e.name; }).indexOf(tag) >= 0) {
+                alert("duplicated");
+                return;
+            }
+            $scope.tags.push({name: tag});
+            $scope.tagText = '';
+            $('.tag-input').val('');
+        //}
+    }
+
+    $scope.removeTag = function(e, tagToRemove) {
+        console.log('removeTag');
+        console.log(e);
+        console.log(tagToRemove);
+        var index = $scope.tags.indexOf(tagToRemove);
+        if (index < 0) return;
+        $scope.tags.splice(index, 1);
+    };
+
+    $scope.getTags = function() {
+        console.log('getTag');
+        var tags = $scope.tags.map(function(e) { return e.name; });
+        $('.result').append('<li>' + tags +'</li>');
+        return tags;
+    };
+
+    $scope.getTagsSerialize = function() {
+        return $scope.tags.map(function(e) { return e.name; }).join(',');
+    };
+
+    $scope.input = function(e) {
+        if (e.keyCode == 13) {
+            $scope.addTag();
+        }
+    }
+})
+</script>
+</body>
+</html>
