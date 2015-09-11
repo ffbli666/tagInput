@@ -27,17 +27,18 @@
                     <button type="button" class="btn btn-primary" ng-click="addTag()">Add Tags</button>
                     <button type="button" class="btn btn-primary" ng-click="getTags()">Get Tags</button>
                     <p ng-bind="getTest(a)"></p>
+                    <p ng-bind="oo.name"></p>
                     <p ng-bind="abc"></p>
                 </div>
 
-                <ul>
+<!--                 <ul>
                     <li ng-repeat="tag in tags">
                         <div class="tag">
                             <span class="name" ng-bind="tag.name"></span>
                             <span class="remove" ng-click="removeTag(tag,abc,eee)">x</span>
                         </div>
                     </li>
-                </ul>
+                </ul> -->
             </div>
         </div>
         <div class='col-xs-6'>
@@ -49,6 +50,7 @@
 </div>
 <script src="../js/jquery-1.11.0.min.js"></script>
 <script src="../js/lng/object-watch.js"></script>
+<script src="../js/lng/object-observe-lite.js"></script>
 <script src="../js/lng/lng.js"></script>
 <script>
 $('#tag-list').lng( function($scope){
@@ -59,6 +61,7 @@ $('#tag-list').lng( function($scope){
     ];
     $scope.abc = "abc string";
     $scope.a = 1;
+    $scope.oo = {name:'oo'};
     $scope.getTest = function(b) {
         console.log('getTest');
         console.log(b);

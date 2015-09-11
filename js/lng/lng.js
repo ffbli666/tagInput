@@ -11,7 +11,7 @@ var Expression = (function() {
             return false;
         };
         return true;
-    }
+    };
     var func = function (string) {
         var regex = /^([\w\d.]+)[ ]*\(([\w\d, .]*)\)$/;
         var match = string.trim().match(regex);
@@ -44,34 +44,58 @@ var Expression = (function() {
 
 var LngScope = function() {
     var _alias = {};
-    var watch = function(watchExpression, hander) {
-        // var regex = /^([\w\d.]+)$/;
-        // var match = string.trim().match(regex);
-        // if (match === null) {
-        //     throw "watch expression parse error e.g. val";
-        // };
-        var props = watchExpression.trim().split('.');
-        _getValue
-        var oldval, newval;
-
-        var getter = function () {
-            return newval;
-        };
-
-        var setter = function (val) {
-            oldval = newval;
-            return newval = handler.call(this, prop, oldval, val);
-        };
-
-
-        if (delete this[prop]) { // can't watch constants
-            Object.defineProperty(this, prop, {
-                  get: getter
-                , set: setter
-                , enumerable: true
-                , configurable: true
-            });
+    var watch = function(string, hander) {
+        var find = getWatchVariable.bind(this)(string);
+        var needWatch = find.variable;
+        var prop = find.prop;
+        if (!needWatch) {
+            return false;
         }
+        needWatch.watch(prop, function(prop, oldval, newval){
+            hander.call(this, prop, oldval, newval);
+            return newval;
+        });
+        //needWatch[prop] = needWatch[prop];
+    }
+    var observe = function(string, hander) {
+        var find = getWatchVariable.bind(this)(string);
+        var needWatch = find.variable;
+        var prop = find.prop;
+        if (!needWatch) {
+            return false;
+        }
+        if (typeof needWatch[prop] !== "object") {
+            return false;
+        }
+        //console.log(needWatch[prop]);
+        Object.observe(needWatch[prop], function(changes) {
+            hander.call(this, changes);
+        });
+        //needWatch[prop] = needWatch[prop];
+    }
+    var getWatchVariable = function (string) {
+        if (!string) {
+            return false;
+        }
+        var props = string.trim().split('.');
+        var name = props[0].toString().trim();
+        if (!name) {
+            return false;
+        }
+        var prop = props.pop();
+        var needbind;
+        if (this[name]) {
+            return {
+                variable: _findValue(this, props),
+                prop: prop
+            };
+        } else if (_alias[name]) {
+            return {
+                variable: _findValue(_alias, props),
+                prop: prop
+            };
+        }
+        return false;
     }
     var getVariable = function(string) {
         if (!string) {
@@ -84,16 +108,16 @@ var LngScope = function() {
         }
 
         if (this[name]) {
-            return _getValue(this[name], props);
+            return _findValue(this[name], props);
         }
 
         if (_alias[name]) {
-            return _getValue(_alias[name], props);
+            return _findValue(_alias[name], props);
         }
         return false;
     };
 
-    var _getValue = function(variable, props) {
+    var _findValue = function(variable, props) {
         if (!variable) {
             return false;
         }
@@ -111,7 +135,7 @@ var LngScope = function() {
             return false;
         }
 
-        return _getValue(variable[firstProp], props);
+        return _findValue(variable[firstProp], props);
     };
 
     var getFunction = function(string) {
@@ -120,7 +144,7 @@ var LngScope = function() {
         }
         var attrs = [];
         var ep = Expression.func(string);
-        var func = this.getVariable(ep.name);
+        var func = getVariable.bind(this)(ep.name);
         if (!func) {
             return false;
         }
@@ -140,18 +164,24 @@ var LngScope = function() {
             func: func,
             attrs: attrs
         }
-    }
+    };
     var setAlias = function(alias, variable) {
         if(!alias || !variable) {
             return ;
         }
         _alias[alias] = variable;
+    };
+    var getAlias = function() {
+        return _alias;
     }
     return {
-        $watch: watch,
+        getWatchVariable: getWatchVariable,
         getVariable: getVariable,
         getFunction: getFunction,
-        setAlias: setAlias
+        setAlias: setAlias,
+        getAlias: getAlias,
+        $watch:watch,
+        $observe:observe
     };
 };
 
@@ -160,7 +190,6 @@ var LngCore = function(selecton, lngScope) {
 
 (function($) {
     $.fn.extend({
-
         lng: function(cb) {
             var self = this;
             var $scope = new LngScope();
@@ -175,23 +204,18 @@ var LngCore = function(selecton, lngScope) {
                         $(element).html(findfunc.func.apply(this, findfunc.attrs));
                     }
                     else {
-
                         var variable = $scope.getVariable(value);
                         if (!variable || typeof variable !== 'string') {
                             return ;
                         }
-                        // $scope.watch(variable, function(prop, oldval, newval){
-                        //     $(element).html(newval);
-                        //     return newval;
-                        // });
-                        //$(element).html(variable);
+                        $scope.$watch (value, function(prop, oldval, newval){
+                            $(element).html(newval);
+                            return newval;
+                        });
+                        //init render
+                        var watch = $scope.getWatchVariable(value);
+                        watch.variable[watch.prop] = watch.variable[watch.prop];
                     }
-                    //if (!$scope[variable] || typeof $scope[variable] !== 'string') return;
-                    // $scope.watch(variable, function(prop, oldval, newval){
-                    //     $(element).html(newval);
-                    //     return newval;
-                    // });
-                    // $scope[variable] = $scope[variable];
                 });
             };
 
@@ -236,17 +260,25 @@ var LngCore = function(selecton, lngScope) {
                     if (!rhs || !rhs instanceof Array) {
                         return ;
                     }
-                    //$scope.setAlias(repeatEp.lhs, rhs);
-                    //console.log(rhs);
-                    rhs.forEach(function(item) {
-                        var temp = renderObj.dom.clone();
-                        $scope.setAlias(repeatEp.lhs, item);
-                        bind(temp);
-                        registerEvent(temp, 'click');
-                        renderObj.parent.append(temp);
-                    })
-                    //console.log(repeatEp);
-                    //registerEvent(renderObj.dom, 'click');
+                    $scope.$watch (repeatEp.rhs, function(prop, oldval, newval){
+                        //console.log(newval);
+                        renderObj.parent.empty();
+                        newval.forEach(function(item) {
+                            var temp = renderObj.dom.clone();
+                            $scope.setAlias(repeatEp.lhs, item);
+                            bind(temp);
+                            registerEvent(temp, 'click');
+                            renderObj.parent.append(temp);
+                        });
+                        return newval;
+                    });
+                    //init render
+                    var watch = $scope.getWatchVariable(repeatEp.rhs);
+                    watch.variable[watch.prop] = watch.variable[watch.prop];
+
+                    $scope.$observe (repeatEp.rhs, function(changes){
+                        watch.variable[watch.prop] = watch.variable[watch.prop];
+                    });
                 }
                 else {
                     bind(renderObj.dom);
