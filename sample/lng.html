@@ -14,7 +14,7 @@
         <div class='col-xs-6'>
             <h1>Demo</h1>
             <div id="tag-list" name="tag-list" class="tag-list">
-                <ul>
+                <ul id='u1'>
                     <li ng-repeat="tag in tags">
                         <div class="tag">
                             <span class="name" ng-bind="tag.name"></span>
@@ -26,19 +26,17 @@
                     <input type=text class="tag-input" placeholder="+" ng-keydown="input($event)" ng-model="tagText">
                     <button type="button" class="btn btn-primary" ng-click="addTag()">Add Tags</button>
                     <button type="button" class="btn btn-primary" ng-click="getTags()">Get Tags</button>
-                    <p ng-bind="getTest(a)"></p>
-                    <p ng-bind="oo.name"></p>
-                    <p ng-bind="abc"></p>
                 </div>
-
-<!--                 <ul>
+                <p ng-bind="abc"></p>
+                <ul id='u2'>
                     <li ng-repeat="tag in tags">
                         <div class="tag">
                             <span class="name" ng-bind="tag.name"></span>
                             <span class="remove" ng-click="removeTag(tag,abc,eee)">x</span>
                         </div>
                     </li>
-                </ul> -->
+                </ul>
+                <p ng-bind="abc"></p>
             </div>
         </div>
         <div class='col-xs-6'>
@@ -59,21 +57,14 @@ $('#tag-list').lng( function($scope){
         {name: 'tag2'},
         {name: 'tag3'}
     ];
-    $scope.abc = "abc string";
-    $scope.a = 1;
-    $scope.oo = {name:'oo'};
-    $scope.getTest = function(b) {
-        console.log('getTest');
-        console.log(b);
-        return b=b+1;
-    };
-
+    $scope.abc = "abc";
     $scope.addTag = function(e) {
         console.log('addTag');
         //if ($scope.tagText){
             //var tag = angular.lowercase($scope.tagText)
             var tag = $('.tag-input').val().trim();
             if (!tag) return ;
+            $scope.abc = tag;
             if ($scope.tags.map(function(e) { return e.name; }).indexOf(tag) >= 0) {
                 alert("duplicated");
                 return;
@@ -86,8 +77,6 @@ $('#tag-list').lng( function($scope){
 
     $scope.removeTag = function(e, tagToRemove) {
         console.log('removeTag');
-        console.log(e);
-        console.log(tagToRemove);
         var index = $scope.tags.indexOf(tagToRemove);
         if (index < 0) return;
         $scope.tags.splice(index, 1);

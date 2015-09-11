@@ -94,9 +94,32 @@
             find = _lngScope.getFunction("math.add(val_1, val_2)");
             assert.equal(find.func.apply(_lngScope, find.attrs), 3, "math.add(val_1, val_2) is return 3");
         });
+
+        QUnit.test( "_lngScope.getWatchVariable test", function( assert ) {
+            assert.equal(_lngScope.getWatchVariable(), false, "empty is false");
+            assert.equal(_lngScope.getWatchVariable('lalala'), false, "lalala is false");
+            var find;
+            find = _lngScope.getWatchVariable('val1');
+            assert.equal(find.variable[find.prop], "value1", "val1 is value1");
+            find = _lngScope.getWatchVariable('array1');
+            assert.propEqual(find.variable[find.prop], ['v1','v2','v3'], "array1 is equal ['v1','v2','v3']");
+            find = _lngScope.getWatchVariable('function1');
+            assert.equal(find.variable[find.prop](), "function1", "function1 is a funciton return function1");
+            find = _lngScope.getWatchVariable('object1.v2');
+            assert.equal(find, false, "object1.v2 is not in variable, return false");
+            find = _lngScope.getWatchVariable('object1.v1');
+            assert.equal(find.variable[find.prop], "v1", "object1.v1 is return v1");
+            find = _lngScope.getWatchVariable('object1.a1');
+            assert.propEqual(find.variable[find.prop], [1,2,3], "object1.a1 is equal [1,2,3]");
+            find = _lngScope.getWatchVariable('object1.f1');
+            assert.equal(find.variable[find.prop](), 'object.f1', "object.f1 is a funciton return object.f1");
+        });
+
         _lngScope.setAlias('alias_value', 123);
         QUnit.test( "_lngScope.setAlias test", function( assert ) {
-            assert.equal(_lngScope.getVariable('alias_value'), 123, "alias_value is 123");
+            assert.equal(_lngScope.getVariable('alias_value'), 123, "alias_value is 123 getVariable");
+            var find = _lngScope.getWatchVariable('alias_value');
+            assert.equal(find.variable[find.prop], 123, "alias_value is 123 getWatchVariable");
         });
     </script>
 </body>

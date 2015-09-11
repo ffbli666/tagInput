@@ -85,13 +85,21 @@ var LngScope = function() {
         var prop = props.pop();
         var needbind;
         if (this[name]) {
+            var find = _findValue(this, props);
+            if (!find[prop]) {
+                return false
+            }
             return {
-                variable: _findValue(this, props),
+                variable: find,
                 prop: prop
             };
         } else if (_alias[name]) {
+            var find = _findValue(_alias, props);
+            if (!find[prop]) {
+                return false
+            }
             return {
-                variable: _findValue(_alias, props),
+                variable: find,
                 prop: prop
             };
         }
@@ -125,7 +133,6 @@ var LngScope = function() {
         if (!props) {
             return variable;
         }
-
         var firstProp = props.splice(0, 1).toString().trim();
         if (firstProp == "") {
             return variable;
@@ -171,15 +178,12 @@ var LngScope = function() {
         }
         _alias[alias] = variable;
     };
-    var getAlias = function() {
-        return _alias;
-    }
+
     return {
         getWatchVariable: getWatchVariable,
         getVariable: getVariable,
         getFunction: getFunction,
         setAlias: setAlias,
-        getAlias: getAlias,
         $watch:watch,
         $observe:observe
     };
@@ -250,11 +254,15 @@ var LngCore = function(selecton, lngScope) {
                 $(this).remove();
             });
             renderQueue.push({dom: self, type: 'root'});
-            //console.log(renderQueue.length);
+
+
+            //
+            console.log(renderQueue);
             for(var i = renderQueue.length-1; i >= 0; i--) {
                 var renderObj = renderQueue[i];
             //renderQueue.reverse().forEach(function( renderObj ) {
                 if (renderObj.type == 'repeat') {
+                    console.log(renderObj.parent);
                     var repeatEp = Expression.repeat(renderObj.dom.attr('ng-repeat'));
                     var rhs = $scope.getVariable(repeatEp.rhs);
                     if (!rhs || !rhs instanceof Array) {
