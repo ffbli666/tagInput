@@ -49,6 +49,7 @@
 <script src="../js/jquery-1.11.0.min.js"></script>
 <script src="../js/lng/object-watch.js"></script>
 <script src="../js/lng/object-observe-lite.js"></script>
+<script src="../js/lng/array-observe.js"></script>
 <script src="../js/lng/lng.js"></script>
 <script>
 $('#tag-list').lng( function($scope){
@@ -57,7 +58,7 @@ $('#tag-list').lng( function($scope){
         {name: 'tag2'},
         {name: 'tag3'}
     ];
-    $scope.abc = "abc";
+    $scope.abc = 123;
     $scope.addTag = function(e) {
         console.log('addTag');
         //if ($scope.tagText){
@@ -72,6 +73,10 @@ $('#tag-list').lng( function($scope){
             $scope.tags.push({name: tag});
             $scope.tagText = '';
             $('.tag-input').val('');
+            //$scope.tags = {};
+            //delete $scope.tags;
+            //$scope.tags[1].name = tag;
+            //$scope.abc = tag;
         //}
     }
 

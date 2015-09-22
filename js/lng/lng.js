@@ -44,19 +44,71 @@ var Expression = (function() {
 
 var LngScope = function() {
     var _alias = {};
-    var watch = function(string, hander) {
+    var _watch = [];
+    var _watchlast = 0;
+    var watch = function(string, handler) {
         var find = getWatchVariable.bind(this)(string);
         var needWatch = find.variable;
         var prop = find.prop;
+        var id;
         if (!needWatch) {
             return false;
         }
-        needWatch.watch(prop, function(prop, oldval, newval){
-            hander.call(this, prop, oldval, newval);
+        //console.log(needWatch);
+        console.log(_watch);
+        if (needWatch[prop + 'handlerID']) {
+            id = needWatch[prop + 'handlerID'];
+            var index = _watch.map(function(e) { return e.id; }).indexOf(id);
+            if (index >= 0) {
+                var watch = _watch[index];
+                watch.handler.push(handler);
+                return true;
+            }
+        }
+
+        id = ++_watchlast;
+        needWatch[prop + 'handlerID'] = id;
+        var watch = {
+            id: id,
+            needWatch: find.variable,
+            prop: prop,
+            handler: [handler]
+        };
+        _watch.push(watch);
+        //console.log(needWatch);
+        needWatch.watch(prop, function(prop, oldval, newval) {
+            // console.log(oldval);
+             //console.log(newval);
+            var newval;
+            for(var i=0; i<watch.handler.length; i++){
+                newval = watch.handler[i].call(this, prop, oldval, newval);
+            }
             return newval;
         });
+
+        return true;
         //needWatch[prop] = needWatch[prop];
-    }
+    };
+
+    var unwatch = function(string) {
+        var find = getWatchVariable.bind(this)(string);
+        var needUnwatch = find.variable;
+        var prop = find.prop;
+        var id;
+        if (!needUnwatch) {
+            return false;
+        }
+        if (needUnwatch[prop + 'handlerID']) {
+            id = needUnwatch[prop + 'handlerID'];
+            var index = _watch.map(function(e) { return e.id; }).indexOf(id);
+            if (index >= 0) {
+                _watch.splice(index, 1);
+            }
+            delete  needUnwatch[prop + 'handlerID'];
+        }
+        needUnwatch.unwatch(prop);
+    };
+
     var observe = function(string, hander) {
         var find = getWatchVariable.bind(this)(string);
         var needWatch = find.variable;
@@ -104,7 +156,7 @@ var LngScope = function() {
             };
         }
         return false;
-    }
+    };
     var getVariable = function(string) {
         if (!string) {
             return false;
@@ -185,6 +237,7 @@ var LngScope = function() {
         getFunction: getFunction,
         setAlias: setAlias,
         $watch:watch,
+        $unwatch:unwatch,
         $observe:observe
     };
 };
@@ -199,7 +252,7 @@ var LngCore = function(selecton, lngScope) {
             var $scope = new LngScope();
             var lng = new LngScope(self, $scope);
             cb.call(self, $scope);
-            var bind = function (dom, string) {
+            var bind = function (dom, rpIndex) {
                 var items = dom.find('[ng-bind]');
                 items.each( function( index, element ) {
                     var value = $(element).attr('ng-bind').trim();
@@ -209,7 +262,7 @@ var LngCore = function(selecton, lngScope) {
                     }
                     else {
                         var variable = $scope.getVariable(value);
-                        if (!variable || typeof variable !== 'string') {
+                        if (!variable || typeof variable === 'function') {
                             return ;
                         }
                         $scope.$watch (value, function(prop, oldval, newval){
@@ -246,6 +299,7 @@ var LngCore = function(selecton, lngScope) {
 
             // init get need render dom
             var renderQueue = new Array();
+            var renderWatch = new Array();
             var items = self.find('[ng-repeat]');
             //console.log(items);
             items.each( function( index, element ) {
@@ -258,9 +312,9 @@ var LngCore = function(selecton, lngScope) {
 
             //
             console.log(renderQueue);
-            for(var i = renderQueue.length-1; i >= 0; i--) {
-                var renderObj = renderQueue[i];
-            //renderQueue.reverse().forEach(function( renderObj ) {
+            //for(var i = renderQueue.length-1; i >= 0; i--) {
+                //var renderObj = renderQueue[i];
+            renderQueue.reverse().forEach(function( renderObj ) {
                 if (renderObj.type == 'repeat') {
                     console.log(renderObj.parent);
                     var repeatEp = Expression.repeat(renderObj.dom.attr('ng-repeat'));
@@ -268,32 +322,65 @@ var LngCore = function(selecton, lngScope) {
                     if (!rhs || !rhs instanceof Array) {
                         return ;
                     }
-                    $scope.$watch (repeatEp.rhs, function(prop, oldval, newval){
+
+                    $scope.$watch (repeatEp.rhs, function(prop, oldval, newval) {
+                        console.log(renderObj.parent);
                         //console.log(newval);
                         renderObj.parent.empty();
-                        newval.forEach(function(item) {
+                        for(var j=0; j < newval.length; j++) {
+                            var item = newval[j];
                             var temp = renderObj.dom.clone();
                             $scope.setAlias(repeatEp.lhs, item);
-                            bind(temp);
+                            bind(temp, j);
                             registerEvent(temp, 'click');
                             renderObj.parent.append(temp);
-                        });
+                        };
                         return newval;
                     });
                     //init render
-                    var watch = $scope.getWatchVariable(repeatEp.rhs);
-                    watch.variable[watch.prop] = watch.variable[watch.prop];
+                    var index = renderWatch.indexOf(repeatEp.rhs);
+                    if (index < 0) {
+                        renderWatch.push(repeatEp.rhs);
 
-                    $scope.$observe (repeatEp.rhs, function(changes){
-                        watch.variable[watch.prop] = watch.variable[watch.prop];
-                    });
+                        $scope.$observe (repeatEp.rhs, function(changes){
+                            console.log(changes);
+                            //unbind
+                            var lastevent = changes.pop();
+                            if (lastevent.type === "delete") {
+                                $scope.setAlias(repeatEp.lhs, lastevent.oldValue);
+                                var items = renderObj.dom.find('[ng-bind]');
+                                items.each( function( index, element ) {
+                                    var value = $(element).attr('ng-bind').trim();
+                                    $scope.$unwatch(value);
+                                });
+                            }
+                            var newval = lastevent.object;
+                            for(var j=0; j < newval.length; j++) {
+                                var item = newval[j];
+                                $scope.setAlias(repeatEp.lhs, item);
+                                var items = renderObj.dom.find('[ng-bind]');
+                                items.each( function( index, element ) {
+                                    var value = $(element).attr('ng-bind').trim();
+                                    $scope.$unwatch(value);
+                                });
+                            };
+
+                            var watch = $scope.getWatchVariable(repeatEp.rhs);
+                            watch.variable[watch.prop] = watch.variable[watch.prop];
+                        });
+                    }
                 }
                 else {
                     bind(renderObj.dom);
                     registerEvent(renderObj.dom, 'click');
                 }
-            };
-
+            });
+            //console.log(renderWatch);
+            renderWatch.forEach(function( item ) {
+                var watch = $scope.getWatchVariable(item);
+                watch.variable[watch.prop] = watch.variable[watch.prop];
+            });
+            //watch.variable[watch.prop]
             return self;
         }
     });
