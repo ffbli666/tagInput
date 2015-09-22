@@ -252,7 +252,7 @@ var LngCore = function(selecton, lngScope) {
             var $scope = new LngScope();
             var lng = new LngScope(self, $scope);
             cb.call(self, $scope);
-            var bind = function (dom, rpIndex) {
+            var bind = function (dom) {
                 var items = dom.find('[ng-bind]');
                 items.each( function( index, element ) {
                     var value = $(element).attr('ng-bind').trim();
@@ -275,6 +275,13 @@ var LngCore = function(selecton, lngScope) {
                     }
                 });
             };
+            var unbind = function(dom){
+                var items = dom.find('[ng-bind]');
+                items.each( function( index, element ) {
+                    var value = $(element).attr('ng-bind').trim();
+                    $scope.$unwatch(value);
+                });
+            }
 
             var registerEvent = function (dom, event) {
                 var items = dom.find('[ng-' + event + ']');
@@ -331,7 +338,7 @@ var LngCore = function(selecton, lngScope) {
                             var item = newval[j];
                             var temp = renderObj.dom.clone();
                             $scope.setAlias(repeatEp.lhs, item);
-                            bind(temp, j);
+                            bind(temp);
                             registerEvent(temp, 'click');
                             renderObj.parent.append(temp);
                         };
@@ -348,23 +355,15 @@ var LngCore = function(selecton, lngScope) {
                             var lastevent = changes.pop();
                             if (lastevent.type === "delete") {
                                 $scope.setAlias(repeatEp.lhs, lastevent.oldValue);
-                                var items = renderObj.dom.find('[ng-bind]');
-                                items.each( function( index, element ) {
-                                    var value = $(element).attr('ng-bind').trim();
-                                    $scope.$unwatch(value);
-                                });
+                                unbind(renderObj.dom);
                             }
                             var newval = lastevent.object;
                             for(var j=0; j < newval.length; j++) {
                                 var item = newval[j];
                                 $scope.setAlias(repeatEp.lhs, item);
-                                var items = renderObj.dom.find('[ng-bind]');
-                                items.each( function( index, element ) {
-                                    var value = $(element).attr('ng-bind').trim();
-                                    $scope.$unwatch(value);
-                                });
+                                unbind(renderObj.dom);
                             };
-
+                            //re render
                             var watch = $scope.getWatchVariable(repeatEp.rhs);
                             watch.variable[watch.prop] = watch.variable[watch.prop];
                         });
