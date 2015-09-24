@@ -48,14 +48,13 @@ var LngScope = function() {
     var _watchlast = 0;
     var watch = function(string, handler) {
         var find = getWatchVariable.bind(this)(string);
+        if (!find) {
+            throw "can not found the property:" + string;
+            return false;
+        }
         var needWatch = find.variable;
         var prop = find.prop;
         var id;
-        if (!needWatch) {
-            return false;
-        }
-        //console.log(needWatch);
-        console.log(_watch);
         if (needWatch[prop + 'handlerID']) {
             id = needWatch[prop + 'handlerID'];
             var index = _watch.map(function(e) { return e.id; }).indexOf(id);
@@ -75,29 +74,26 @@ var LngScope = function() {
             handler: [handler]
         };
         _watch.push(watch);
-        //console.log(needWatch);
         needWatch.watch(prop, function(prop, oldval, newval) {
-            // console.log(oldval);
-             //console.log(newval);
-            var newval;
-            for(var i=0; i<watch.handler.length; i++){
+            for(var i=0; i<watch.handler.length; i++) {
                 newval = watch.handler[i].call(this, prop, oldval, newval);
             }
             return newval;
         });
 
         return true;
-        //needWatch[prop] = needWatch[prop];
     };
 
     var unwatch = function(string) {
         var find = getWatchVariable.bind(this)(string);
+        if (!find) {
+            throw "can not found the property:" + string;
+            return false;
+        }
         var needUnwatch = find.variable;
         var prop = find.prop;
         var id;
-        if (!needUnwatch) {
-            return false;
-        }
+
         if (needUnwatch[prop + 'handlerID']) {
             id = needUnwatch[prop + 'handlerID'];
             var index = _watch.map(function(e) { return e.id; }).indexOf(id);
@@ -111,12 +107,14 @@ var LngScope = function() {
 
     var observe = function(string, hander) {
         var find = getWatchVariable.bind(this)(string);
-        var needWatch = find.variable;
-        var prop = find.prop;
-        if (!needWatch) {
+        if (!find) {
+            throw "can not found the property:" + string;
             return false;
         }
+        var needWatch = find.variable;
+        var prop = find.prop;
         if (typeof needWatch[prop] !== "object") {
+            throw "this property is not object";
             return false;
         }
         //console.log(needWatch[prop]);
@@ -136,24 +134,22 @@ var LngScope = function() {
         }
         var prop = props.pop();
         var needbind;
-        if (this[name]) {
+        if (this[name] !== undefined) {
             var find = _findValue(this, props);
-            if (!find[prop]) {
-                return false
+            if (find[prop] !== undefined) {
+                return {
+                    variable: find,
+                    prop: prop
+                };
             }
-            return {
-                variable: find,
-                prop: prop
-            };
-        } else if (_alias[name]) {
+        } else if (_alias[name] !== undefined) {
             var find = _findValue(_alias, props);
-            if (!find[prop]) {
-                return false
+            if (find[prop] !== undefined) {
+                return {
+                    variable: find,
+                    prop: prop
+                };
             }
-            return {
-                variable: find,
-                prop: prop
-            };
         }
         return false;
     };
@@ -232,9 +228,9 @@ var LngScope = function() {
     };
 
     return {
-        getWatchVariable: getWatchVariable,
         getVariable: getVariable,
         getFunction: getFunction,
+        getWatchVariable: getWatchVariable,
         setAlias: setAlias,
         $watch:watch,
         $unwatch:unwatch,
@@ -375,6 +371,7 @@ var LngCore = function(selecton, lngScope) {
                 }
             });
             //console.log(renderWatch);
+            //init watch render
             renderWatch.forEach(function( item ) {
                 var watch = $scope.getWatchVariable(item);
                 watch.variable[watch.prop] = watch.variable[watch.prop];
