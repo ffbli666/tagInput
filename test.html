@@ -15,6 +15,7 @@
     <script src="js/jquery-1.11.0.min.js"></script>
     <script src="js/lng/lng.js"></script>
     <script>
+        //Expression.func
         QUnit.test( "Expression.func test", function( assert ) {
             assert.throws(function(){
                 try{
@@ -34,6 +35,9 @@
             assert.propEqual( Expression.func("add (value1)"), {name:"add",attrs:"value1"},'add (value1) return: {name="add", attribute:"value1"}' );
             assert.propEqual( Expression.func("add_value (value_1, value_2)"), {name:"add_value",attrs:"value_1, value_2"}, 'add_value (value_1, value_2) return: {name="add_value", attribute:"value_1, value_2"}' );
         });
+
+
+        //Expression.repeat
         QUnit.test( "Expression.repeat test", function( assert ) {
             assert.throws(function(){
                 try{
@@ -52,6 +56,8 @@
             assert.propEqual( Expression.repeat("element   in array"), {lhs:"element", rhs:"array"}, 'element   in array return: {lhs:"element", rhs:"array"}' );
         });
 
+
+        //Expression.isFunction
         QUnit.test( "Expression.isFunction test", function( assert ) {
             assert.equal( Expression.isFunction(), false, 'empty return false' );
             assert.equal( Expression.isFunction("abc"), false, 'abc return false' );
@@ -59,12 +65,16 @@
             assert.equal( Expression.isFunction("abc(a,b,c,d)"), true, 'abc(a,b,c,d) return true' );
         });
 
+
+
+        //_lngScope
         var _lngScope = new LngScope();
         _lngScope.val1 = 0;
         _lngScope.array1 = ['v1','v2','v3'];
         _lngScope.function1 = function(){return 'function1'};
         _lngScope.object1 = {f1:function(){return 'object.f1'}, v1:'v1', a1:[1,2,3]};
 
+        //_lngScope.getVariable
         QUnit.test( "_lngScope.getVariable test", function( assert ) {
             assert.equal(_lngScope.getVariable(), false, "empty is return false");
             assert.equal(_lngScope.getVariable("lalala"), false, "lalala is not a variable return false");
@@ -76,8 +86,10 @@
             assert.propEqual(_lngScope.getVariable("object1.a1"), [1,2,3], "object1.a1 is equal [1,2,3]");
             assert.equal(_lngScope.getVariable("object1.f1")(), 'object.f1', "object.f1 is a funciton return object.f1");
         });
-        _lngScope.val_1 = 1;
-        _lngScope.val_2 = 2;
+
+        //_lngScope.getFunction
+        _lngScope.add_1 = 99;
+        _lngScope.add_2 = 2;
         _lngScope.math = {add: function(a, b){return a+b;}};
         QUnit.test( "_lngScope.getFunction test", function( assert ) {
             assert.equal(_lngScope.getFunction(), false, "empty is return false");
@@ -94,10 +106,12 @@
             assert.equal(find.func.apply(_lngScope, find.attrs), "function1", "function1 is return function1");
             find = _lngScope.getFunction("object1.f1()");
             assert.equal(find.func.apply(_lngScope, find.attrs), "object.f1", "object.f1 is return object.f1");
-            find = _lngScope.getFunction("math.add(val_1, val_2)");
-            assert.equal(find.func.apply(_lngScope, find.attrs), 3, "math.add(val_1, val_2) is return 3");
+            find = _lngScope.getFunction("math.add(add_1, add_2)");
+            assert.equal(find.func.apply(_lngScope, find.attrs), 101, "math.add(add_1, add_2) is return 101");
         });
 
+
+        //_lngScope.getWatchVariable
         QUnit.test( "_lngScope.getWatchVariable test", function( assert ) {
             assert.equal(_lngScope.getWatchVariable(), false, "empty is false");
             assert.equal(_lngScope.getWatchVariable('lalala'), false, "lalala is false");
@@ -118,6 +132,8 @@
             assert.equal(find.variable[find.prop](), 'object.f1', "object.f1 is a funciton return object.f1");
         });
 
+
+        //_lngScope.setAlias
         _lngScope.setAlias('alias_value', 123);
         QUnit.test( "_lngScope.setAlias test", function( assert ) {
             assert.equal(_lngScope.getVariable('alias_value'), 123, "alias_value is 123 getVariable");
@@ -125,6 +141,57 @@
             assert.equal(find.variable[find.prop], 123, "alias_value is 123 getWatchVariable");
         });
 
+
+        //_lngScope.setModel
+        QUnit.test( "_lngScope.setModel test", function( assert ) {
+            assert.throws(function(){
+                try{
+                    _lngScope.setModel('', function(value){},function(value) {});
+                } catch (e) {
+                    throw e;
+                }
+            }, "prop is empty, throw error" );
+            assert.throws(function(){
+                try{
+                    _lngScope.setModel('setter1', 1, function(value){});
+                } catch (e) {
+                    throw e;
+                }
+            }, "setter is not function, throw error" );
+            assert.throws(function(){
+                try{
+                    _lngScope.setModel('', function(value){}, 1);
+                } catch (e) {
+                    throw e;
+                }
+            }, "getter is not function, throw error" );
+
+            _lngScope.setModel(
+                'setter_test',
+                function(value) {
+                    return value * 10;
+                },
+                function(value) {
+                    return value;
+                }
+            );
+            _lngScope.setter_test = 1;
+            assert.equal(_lngScope.setter_test, 10, "setter_test is value*10 = 10");
+            _lngScope.setModel(
+                'getter_test',
+                function(value) {
+                    return value;
+                },
+                function(value) {
+                    return value + " world";
+                }
+            );
+            _lngScope.getter_test = "hello";
+            assert.equal(_lngScope.getter_test, "hello world", "getter_test is hello world");
+        });
+
+
+        //_lngScope.$watch
         _lngScope.watch_v1 = 0;
         QUnit.test( "_lngScope.$watch test", function( assert ) {
             assert.throws(function(){
@@ -149,6 +216,8 @@
             assert.equal(_lngScope.watch_v1, 3, "watch_v1 is 3");
         });
 
+
+        //_lngScope.$unwatch
         QUnit.test( "_lngScope.$unwatch test", function( assert ) {
             assert.throws(function(){
                 try{
@@ -162,6 +231,8 @@
             assert.equal(_lngScope.watch_v1, 1, "watch_v1 is 1");
         });
 
+
+        //_lngScope.$observe
         QUnit.test( "_lngScope.$observe test", function( assert ) {
             assert.throws(function(){
                 try{

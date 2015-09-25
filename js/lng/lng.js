@@ -227,11 +227,36 @@ var LngScope = function() {
         _alias[alias] = variable;
     };
 
+    var setModel = function(prop, set, get) {
+        if (!prop) {
+            throw "prop is empty";
+        }
+        if (typeof set !== 'function' || typeof get !== 'function') {
+            throw "set or get not function";
+        }
+        var value = this[prop];
+        var setter = function (val) {
+                value = set.call(this, val);
+            };
+        var getter = function () {
+                return get.call(this, value);
+            };
+        if (delete this[prop]) { // can't watch constants
+            Object.defineProperty(this, prop, {
+                set: setter,
+                get: getter,
+                enumerable: true,
+                configurable: true
+            });
+        }
+    };
+
     return {
         getVariable: getVariable,
         getFunction: getFunction,
         getWatchVariable: getWatchVariable,
         setAlias: setAlias,
+        setModel: setModel,
         $watch:watch,
         $unwatch:unwatch,
         $observe:observe
@@ -247,7 +272,9 @@ var LngCore = function(selecton, lngScope) {
             var self = this;
             var $scope = new LngScope();
             var lng = new LngScope(self, $scope);
+
             cb.call(self, $scope);
+
             var bind = function (dom) {
                 var items = dom.find('[ng-bind]');
                 items.each( function( index, element ) {
@@ -288,12 +315,31 @@ var LngCore = function(selecton, lngScope) {
                         return;
                     }
 
-                    $(element).on(event, function(e){
+                    $(element).on(event, function(e) {
                         findfunc.attrs.unshift(e);
                         findfunc.func.apply(this, findfunc.attrs);
                     });
                 });
             };
+            //ng-model
+            var model = function(dom) {
+                var items = dom.find('[ng-model]');
+                items.each( function( index, element ) {
+                    var modelObj = $(element);
+                    var prop = modelObj.attr('ng-model').trim();
+                    //prop, setter, getter
+                    $scope.setModel(
+                        prop,
+                        function(value) {
+                            modelObj.val(value);
+                            return value;
+                        },
+                        function(value) {
+                            return modelObj.val();
+                        }
+                    );
+                });
+            }
 
             var render = function(dom) {
                 bind(dom);
@@ -314,12 +360,12 @@ var LngCore = function(selecton, lngScope) {
 
 
             //
-            console.log(renderQueue);
+            //console.log(renderQueue);
             //for(var i = renderQueue.length-1; i >= 0; i--) {
                 //var renderObj = renderQueue[i];
             renderQueue.reverse().forEach(function( renderObj ) {
                 if (renderObj.type == 'repeat') {
-                    console.log(renderObj.parent);
+                    //console.log(renderObj.parent);
                     var repeatEp = Expression.repeat(renderObj.dom.attr('ng-repeat'));
                     var rhs = $scope.getVariable(repeatEp.rhs);
                     if (!rhs || !rhs instanceof Array) {
@@ -327,7 +373,7 @@ var LngCore = function(selecton, lngScope) {
                     }
 
                     $scope.$watch (repeatEp.rhs, function(prop, oldval, newval) {
-                        console.log(renderObj.parent);
+                        //console.log(renderObj.parent);
                         //console.log(newval);
                         renderObj.parent.empty();
                         for(var j=0; j < newval.length; j++) {
@@ -336,6 +382,7 @@ var LngCore = function(selecton, lngScope) {
                             $scope.setAlias(repeatEp.lhs, item);
                             bind(temp);
                             registerEvent(temp, 'click');
+                            model(temp);
                             renderObj.parent.append(temp);
                         };
                         return newval;
@@ -346,7 +393,7 @@ var LngCore = function(selecton, lngScope) {
                         renderWatch.push(repeatEp.rhs);
 
                         $scope.$observe (repeatEp.rhs, function(changes){
-                            console.log(changes);
+                            //console.log(changes);
                             //unbind
                             var lastevent = changes.pop();
                             if (lastevent.type === "delete") {
@@ -368,6 +415,7 @@ var LngCore = function(selecton, lngScope) {
                 else {
                     bind(renderObj.dom);
                     registerEvent(renderObj.dom, 'click');
+                    model(renderObj.dom);
                 }
             });
             //console.log(renderWatch);

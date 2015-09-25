@@ -7,9 +7,8 @@ var taginput = function($scope) {
     $scope.abc = 123;
     $scope.addTag = function(e) {
         console.log('addTag');
-        //if ($scope.tagText){
-            //var tag = angular.lowercase($scope.tagText)
-            var tag = $('.tag-input').val().trim();
+        if ($scope.tagText){
+            var tag = $scope.tagText.trim().toLowerCase();
             if (!tag) return ;
             $scope.abc = tag;
             if ($scope.tags.map(function(e) { return e.name; }).indexOf(tag) >= 0) {
@@ -18,12 +17,7 @@ var taginput = function($scope) {
             }
             $scope.tags.push({name: tag});
             $scope.tagText = '';
-            $('.tag-input').val('');
-            //$scope.tags = {};
-            //delete $scope.tags;
-            //$scope.tags[1].name = tag;
-            //$scope.abc = tag;
-        //}
+        }
     }
 
     $scope.removeTag = function(e, tagToRemove) {
