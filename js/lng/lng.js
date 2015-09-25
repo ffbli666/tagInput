@@ -269,6 +269,22 @@ var LngCore = function(selecton, lngScope) {
 (function($) {
     $.fn.extend({
         lng: function(cb) {
+            var eventList = [
+                'blur',
+                'change',
+                'click',
+                'dbclick',
+                'focus',
+                'keydown',
+                'keypress',
+                'keyup',
+                'mousedown',
+                'mouseenter',
+                'mouseleave',
+                'mousemove',
+                'mouseover',
+                'mouseup'
+            ];
             var self = this;
             var $scope = new LngScope();
             var lng = new LngScope(self, $scope);
@@ -381,7 +397,10 @@ var LngCore = function(selecton, lngScope) {
                             var temp = renderObj.dom.clone();
                             $scope.setAlias(repeatEp.lhs, item);
                             bind(temp);
-                            registerEvent(temp, 'click');
+                            eventList.forEach( function(event) {
+                                registerEvent(temp, event);
+                            });
+                            //registerEvent(temp, 'click');
                             model(temp);
                             renderObj.parent.append(temp);
                         };
@@ -414,13 +433,16 @@ var LngCore = function(selecton, lngScope) {
                 }
                 else {
                     bind(renderObj.dom);
-                    registerEvent(renderObj.dom, 'click');
+                    eventList.forEach( function(event) {
+                        registerEvent(renderObj.dom, event);
+                    });
+                    //registerEvent(renderObj.dom, 'click');
                     model(renderObj.dom);
                 }
             });
             //console.log(renderWatch);
             //init watch render
-            renderWatch.forEach(function( item ) {
+            renderWatch.forEach( function( item ) {
                 var watch = $scope.getWatchVariable(item);
                 watch.variable[watch.prop] = watch.variable[watch.prop];
             });

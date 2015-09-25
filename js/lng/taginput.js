@@ -1,4 +1,4 @@
-var taginput = function($scope) {
+var tagInput = function($scope) {
     $scope.tags = [
         {name: 'tag1'},
         {name: 'tag2'},
@@ -39,6 +39,7 @@ var taginput = function($scope) {
     };
 
     $scope.input = function(e) {
+        console.log(e);
         if (e.keyCode == 13) {
             $scope.addTag();
         }
