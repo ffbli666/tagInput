@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv='content-type' content='text/html; charset=utf-8'>
+    <title>Use Vue Implement Tag Input</title>
+    <link href='../css/bootstrap.min.css' rel='stylesheet'>
+    <link href='../css/common.css' rel='stylesheet'>
+    <style>
+    </style>
+</head>
+<body>
+<div class='container-fluid'>
+    <div class='row'>
+        <div class='col-xs-6'>
+            <h1>Demo</h1>
+            <div id="tag-list" name="tag-list" class="tag-list">
+                <ul>
+                    <li v-for="tag in tags">
+                        <div class="tag">
+                            <span class="name">{{tag.name}}</span>
+                            <span class="remove" v-on:click="removeTag(tag)">x</span>
+                        </div>
+                    </li>
+                </ul>
+                <div>
+                    <input type=text class="tag-input" placeholder="+" v-on:keydown.enter="input($event)" v-model="tagText">
+                    <button type="button" class="btn btn-primary" v-on:click="addTag()">Add Tags</button>
+                    <button type="button" class="btn btn-primary" v-on:click="getTags()">Get Tags</button>
+                </div>
+            </div>
+        </div>
+        <div class='col-xs-6'>
+            <h1>Result</h1>
+            <ul class='result'>
+            </ul>
+        </div>
+    </div>
+</div>
+<script src="../js/jquery-1.11.0.min.js"></script>
+<script src="http://cdn.jsdelivr.net/vue/1.0.4/vue.min.js"></script>
+<script>
+var tag = new Vue({
+    el: '#tag-list',
+    data: {
+        tags: [
+            {name: 'tag1'},
+            {name: 'tag2'},
+            {name: 'tag3'}
+        ]
+    },
+    methods: {
+        addTag : function(e) {
+            if (this.tagText){
+                var tag = this.tagText.trim().toLowerCase();
+                if (this.tags.map(function(e) { return e.name; }).indexOf(tag) >= 0) {
+                    alert("duplicated");
+                    return;
+                }
+                this.tags.push({name: tag});
+                this.tagText = '';
+            }
+        },
+        removeTag : function(tagToRemove) {
+            var index = this.tags.indexOf(tagToRemove);
+            if (index < 0) return;
+            this.tags.splice(index, 1);
+        },
+        getTags : function() {
+            var tags = this.tags.map(function(e) { return e.name; });
+            $('.result').append('<li>' + tags +'</li>');
+            return tags;
+        },
+        getTagsSerialize : function() {
+            return this.tags.map(function(e) { return e.name; }).join(',');
+        },
+        input : function(e) {
+            this.addTag();
+        }
+    }
+});
+
+</script>
+</body>
+</html>
