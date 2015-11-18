@@ -38,8 +38,9 @@
 </div>
 <script src="../js/jquery-1.11.0.min.js"></script>
 <script src="http://cdn.jsdelivr.net/vue/1.0.4/vue.min.js"></script>
+<script src="../js/vue/tagInput.js"></script>
 <script>
-var tag = new Vue({
+var tags = new TagInput({
     el: '#tag-list',
     data: {
         tags: [
@@ -47,38 +48,8 @@ var tag = new Vue({
             {name: 'tag2'},
             {name: 'tag3'}
         ]
-    },
-    methods: {
-        addTag : function(e) {
-            if (this.tagText){
-                var tag = this.tagText.trim().toLowerCase();
-                if (this.tags.map(function(e) { return e.name; }).indexOf(tag) >= 0) {
-                    alert("duplicated");
-                    return;
-                }
-                this.tags.push({name: tag});
-                this.tagText = '';
-            }
-        },
-        removeTag : function(tagToRemove) {
-            var index = this.tags.indexOf(tagToRemove);
-            if (index < 0) return;
-            this.tags.splice(index, 1);
-        },
-        getTags : function() {
-            var tags = this.tags.map(function(e) { return e.name; });
-            $('.result').append('<li>' + tags +'</li>');
-            return tags;
-        },
-        getTagsSerialize : function() {
-            return this.tags.map(function(e) { return e.name; }).join(',');
-        },
-        input : function(e) {
-            this.addTag();
-        }
     }
 });
-
 </script>
 </body>
 </html>
